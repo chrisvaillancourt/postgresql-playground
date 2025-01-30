@@ -885,3 +885,159 @@ CREATE TABLE products (
 );
 ```
 
+## Foreign keys
+
+A foreign key constraint specifies that the values in a column (or a group of
+columns) must match the values appearing in some row of another table.
+A foreign key maintains the referential integrity between two related tables.
+
+Given a products table:
+
+```sql
+CREATE TABLE products (
+    product_no integer PRIMARY KEY,
+    name text,
+    price numeric
+);
+```
+
+We can ensure the `orders` table only contains order for products that exist in
+the `products` table:
+
+```sql
+CREATE TABLE orders (
+    order_id integer PRIMARY KEY,
+    product_no integer REFERENCES products (product_no),
+    quantity integer
+);
+```
+
+↑ the orders table is the _referencing_ table and the products table is the
+_referenced_ table.
+You can use a shorter syntax that drops the column list (the primary key of the
+referenced table will be assumed):
+
+```sql
+CREATE TABLE orders (
+    order_id integer PRIMARY KEY,
+    product_no integer REFERENCES products,
+    quantity integer
+);
+```
+
+You can use a column in the same table as a foreign key constraint (a self-referential foreign key).
+
+```sql
+CREATE TABLE tree (
+    node_id integer PRIMARY KEY,
+    parent_id integer REFERENCES tree,
+    name text
+);
+```
+
+↑ A top-level node would have NULL parent_id, while non-NULL parent_id entries
+would be constrained to reference valid rows of the table.
+
+A table can have more than one foreign key constraint. This is used to implement many-to-many relationships between tables.
+
+For example, you have tables about products and orders, but now you want to
+allow one order to contain possibly many products (which the structure above
+did not allow):
+
+```sql
+CREATE TABLE products (
+    product_no integer PRIMARY KEY,
+    name text,
+    price numeric
+);
+
+CREATE TABLE orders (
+    order_id integer PRIMARY KEY,
+    shipping_address text
+);
+
+CREATE TABLE order_items (
+    product_no integer REFERENCES products,
+    order_id integer REFERENCES orders,
+    quantity integer,
+    PRIMARY KEY (product_no, order_id)
+);
+```
+
+What if we want to remove a product after an order is created that references
+it? For example, let's implement the following policy on the many-to-many
+relationship example above: when someone wants to remove a product that is
+still referenced by an order (via order_items), we disallow it. If someone
+removes an order, the order items are removed as well:
+
+```sql
+CREATE TABLE products (
+    product_no integer PRIMARY KEY,
+    name text,
+    price numeric
+);
+
+CREATE TABLE orders (
+    order_id integer PRIMARY KEY,
+    shipping_address text,
+    ...
+);
+
+CREATE TABLE order_items (
+    product_no integer REFERENCES products ON DELETE RESTRICT,
+    order_id integer REFERENCES orders ON DELETE CASCADE,
+    quantity integer,
+    PRIMARY KEY (product_no, order_id)
+);
+```
+
+`RESTRICT` prevents deletion of a referenced row.
+`NO ACTION` means that if any referencing rows still exist when the constraint
+is checked, an error is raised; this is the default behavior if you do not
+specify anything.
+`CASCADE` specifies that when a referenced row is deleted, row(s) referencing
+it should be automatically deleted as well.
+Instead of `CASCADE`, we could use `SET NULL` and `SET DEFAULT`.
+
+The appropriate choice of `ON DELETE` action depends on what kinds of objects
+the related tables represent. When the referencing table represents something
+that is a component of what is represented by the referenced table and cannot
+exist independently, then `CASCADE` could be appropriate. If the two tables
+represent independent objects, then `RESTRICT` or `NO ACTION` is more appropriate;
+an application that actually wants to delete both objects would then have to be
+explicit about this and run two delete commands.
+
+The actions `SET NULL` or `SET DEFAULT` can be appropriate if a foreign-key relationship represents optional information
+
+`SET NULL` and `SET DEFAULT` can take a column list to specify which columns to
+set. Normally, all columns of the foreign-key constraint are set; setting only
+a subset is useful in some special cases:
+
+```sql
+CREATE TABLE tenants (
+    tenant_id integer PRIMARY KEY
+);
+
+CREATE TABLE users (
+    tenant_id integer REFERENCES tenants ON DELETE CASCADE,
+    user_id integer NOT NULL,
+    PRIMARY KEY (tenant_id, user_id)
+);
+
+CREATE TABLE posts (
+    tenant_id integer REFERENCES tenants ON DELETE CASCADE,
+    post_id integer NOT NULL,
+    author_id integer,
+    PRIMARY KEY (tenant_id, post_id),
+    FOREIGN KEY (tenant_id, author_id) REFERENCES users ON DELETE SET NULL (author_id)
+);
+```
+
+↑ Without the specification of the column, the foreign key would also set the
+column `tenant_id` to null, but that column is still required as part of the
+primary key.
+
+There's also `ON UPDATE` which is invoked when a referenced column is changed.
+Combining `ON UPDATE` with `CASCADE` means that the updated values of the
+referenced column(s) should be copied into the referencing row(s).
+
