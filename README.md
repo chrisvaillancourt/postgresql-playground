@@ -671,3 +671,45 @@ In table inheritance hierarchies, identity columns and their properties in a
 child table are independent of those in its parent tables. A child table does
 not inherit identity columns or their properties automatically from the parent.
 
+## Generated columns
+
+A generated column is a special column that is always computed from other
+columns. It's like table views except for columns.
+There are two types of generated columns: stored and virtual.
+
+A stored generated column is computed when it is written (inserted or updated)
+and occupies storage as if it were a normal column.
+A virtual generated column occupies no storage and is computed when it is read.
+Thus, a virtual generated column is similar to a view and a stored generated
+column is similar to a materialized view (except that it is always updated
+automatically). **PostgreSQL currently implements only stored generated columns**.
+
+To create a generated column, use the `GENERATED ALWAYS AS` clause in
+`CREATE TABLE`:
+
+```sql
+CREATE TABLE people (
+    id bigint GENERATED ALWAYS AS IDENTITY,
+    name text,
+    address text,
+    height_cm numeric,
+    height_in numeric GENERATED ALWAYS AS (height_cm / 2.54) STORED
+);
+```
+
+```sql
+INSERT INTO people (name, address, height_cm) VALUES ('A', 'foo', 182.8);
+SELECT * FROM people;
+```
+
+yields:
+
+```
+ id | name | address | height_cm |      height_in
+----+------+---------+-----------+---------------------
+  1 | A    | foo     |     182.8 | 71.9685039370078740
+```
+
+A generated column is updated whenever the row changes and cannot be overridden.
+There are several restrictions on generated columns.
+
