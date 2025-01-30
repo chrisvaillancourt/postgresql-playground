@@ -535,3 +535,25 @@ cities table, and not tables below cities in the inheritance hierarchy.
 Inheritance hasn't been integrated with unique contraints or foreign keys.
 See [inheritance caveats](https://www.postgresql.org/docs/17/ddl-inherit.html).
 
+<!-- the SQL language -->
+
+## identifiers and keywords
+
+[Complete list of keywords](https://www.postgresql.org/docs/17/sql-keywords-appendix.html)
+
+Key words and unquoted identifiers are case-insensitive.
+
+these are functionally identical:
+
+```sql
+UPDATE MY_TABLE SET A = 5;
+uPDaTE my_TabLE SeT a = 5;
+```
+
+It's convention to use upper case for key words and names in lower case.
+Anything inside of quotes (`""`) is a deliminated identifier (name).
+i.e. `"select"` could be used as a table name but `select` will always be
+treated as a keyword.
+
+Quoting an identifier also makes it case-sensitive, whereas unquoted names are always folded to lower case.
+
