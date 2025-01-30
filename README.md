@@ -872,3 +872,16 @@ CREATE TABLE products (
 );
 ```
 
+## Primary keys
+
+A primary key constraint indicates that a column, or group of columns, can be
+used as a unique identifier for rows in the table. Only one can exist per table.
+
+```sql
+CREATE TABLE products (
+    product_no integer PRIMARY KEY,
+    name text,
+    price numeric
+);
+```
+
