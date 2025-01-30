@@ -1041,3 +1041,17 @@ There's also `ON UPDATE` which is invoked when a referenced column is changed.
 Combining `ON UPDATE` with `CASCADE` means that the updated values of the
 referenced column(s) should be copied into the referencing row(s).
 
+## Modifying / Altering tables
+
+### Adding a table
+
+```sql
+ALTER TABLE products ADD COLUMN description text;
+```
+
+With constraints:
+
+```sql
+ALTER TABLE products ADD COLUMN description text CHECK (description <> '');
+```
+
