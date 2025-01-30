@@ -1103,3 +1103,11 @@ ALTER TABLE products ALTER COLUMN price SET DEFAULT 7.77;
 
 ↑ Only changes the default for future INSERT commands.
 
+### Changing a columns data type
+
+```sql
+ALTER TABLE products ALTER COLUMN price TYPE numeric(10,2);
+```
+
+↑ only works if the conversion can be done with an implicit cast. Otherwise neeed to use a `USING` clause.
+
