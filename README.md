@@ -1165,3 +1165,10 @@ inserted. This is not so useful in trivial inserts, since it would just repeat
 the data provided by the client. But it can be very handy when relying on
 computed default values.
 
+## Queries
+
+Syntax of a `SELECT` command:
+
+```sql
+[WITH with_queries] SELECT select_list FROM table_expression [sort_specification]
+```
