@@ -276,3 +276,53 @@ CREATE TABLE weather (
 );
 ```
 
+## Transactions
+
+Combines multiple steps into one, all or nothing operation.
+The intermediate states between the steps are not visible to other concurrent
+transactions, and if some failure occurs that prevents the transaction from
+completing, then none of the steps affect the database at all.
+
+Transactions are atomic to the perspective of other transactions. ALl updates
+are permanent after a transaction completes.
+
+Transactions prevent other concurrent transactions from seeing incomplete
+changes.
+
+a transaction is set up by surrounding the SQL commands of the transaction with `BEGIN` and `COMMIT` commands.
+
+```sql
+BEGIN;
+UPDATE accounts SET balance = balance - 100.00
+    WHERE name = 'Alice';
+-- etc etc
+COMMIT;
+```
+
+We can issue a `ROLLBACK` command instead of a `COMMIT` to cancel changes.
+
+You can use savepoints to get more granular control over a transaction.
+Savepoints allow you to selectively discard parts of a transaction while
+commiting the rest.
+After defining a savepoint with `SAVEPOINT`, you can if needed roll back to the
+savepoint with `ROLLBACK TO`. All the transaction's database changes between
+defining the savepoint and rolling back to it are discarded, but changes
+earlier than the savepoint are kept.
+
+For example, if we removed 100 from Alice's account and add it to Bob's but
+later learn we need to credit Wally's account:
+
+```sql
+BEGIN;
+UPDATE accounts SET balance = balance - 100.00
+    WHERE name = 'Alice';
+SAVEPOINT my_savepoint;
+UPDATE accounts SET balance = balance + 100.00
+    WHERE name = 'Bob';
+-- oops ... forget that and use Wally's account
+ROLLBACK TO my_savepoint;
+UPDATE accounts SET balance = balance + 100.00
+    WHERE name = 'Wally';
+COMMIT;
+```
+
