@@ -139,3 +139,67 @@ SELECT w1.city, w1.temp_lo AS low, w1.temp_hi AS high,
         ON w1.temp_lo < w2.temp_lo AND w1.temp_hi > w2.temp_hi;
 ```
 
+## Aggregate functions
+
+computes a single result from multiple input rows.
+I.e. compute the count, sum, avg (average), max (maximum) and min (minimum)
+over a set of rows.
+
+To find the max temperature:
+
+```sql
+SELECT max(temp_lo) FROM weather;
+```
+
+To find the cities that had that computed value, we need to use a subquery:
+
+```sql
+SELECT city FROM weather
+    WHERE temp_lo = (SELECT max(temp_lo) FROM weather);
+```
+
+Use a `GROUP BY` clause to get stats on combined rows.
+I.e. we can get the number of readings and the maximum low temperature observed
+in each city with:
+
+```sql
+SELECT city, count(*), max(temp_lo)
+    FROM weather
+    GROUP BY city;
+```
+
+↑ The aggregate result is computed over rows matching each city.
+
+Combine with `HAVING` to filter group rows.
+i.e. get the number of temperature readings by city that had a low temperature
+below 40:
+
+```sql
+SELECT city, count(*), max(temp_lo)
+    FROM weather
+    GROUP BY city
+    HAVING max(temp_lo) < 40;
+```
+
+### Difference between `WHERE` and `HAVING`
+
+`WHERE` selects input rows before groups and aggregates are computed (it controls which rows go into the aggregate computation).
+`HAVING` selects group rows after groups and aggregates are computed.
+That's why you can't put an aggregation into a `WHERE` clause. A `HAVING` clause almost always uses an aggregate function.
+
+### Filter
+
+use the `FILTER` aggregation to select the rows that go into an aggregate
+computation. It's a per-aggregate options.
+
+`FILTER` is like `WHERE` except `FILTER` removes rows only from the input of
+the particular aggregate function that it is attached to.
+
+I.e. the count aggregate counts only rows with temp_lo below 45; but the max aggregate is still applied to all rows, so it still finds the reading of 46:
+
+```sql
+SELECT city, count(*) FILTER (WHERE temp_lo < 45), max(temp_lo)
+    FROM weather
+    GROUP BY city;
+```
+
