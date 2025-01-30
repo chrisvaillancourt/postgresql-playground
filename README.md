@@ -822,3 +822,53 @@ CREATE TABLE products (
 );
 ```
 
+## Unique constraints
+
+ensure that the data contained in a column, or a group of columns, is unique among all the rows in the table:
+
+```sql
+CREATE TABLE products (
+    product_no integer UNIQUE,
+    name text,
+    price numeric
+);
+```
+
+You can define a unique constraint for a group of columns. The uniqueness
+applies to the combination of values listed, not the individual columns.
+
+```sql
+CREATE TABLE example (
+    a integer,
+    b integer,
+    c integer,
+    UNIQUE (a, c)
+);
+```
+
+You can assign a name to a unique constraint:
+
+```sql
+CREATE TABLE products (
+    product_no integer CONSTRAINT must_be_different UNIQUE,
+    name text,
+    price numeric
+);
+```
+
+In general, a unique constraint is violated if there is more than one row in
+the table where the values of all of the columns included in the constraint are
+equal. By default, two null values are not considered equal in this comparison.
+That means even in the presence of a unique constraint it is possible to store
+duplicate rows that contain a null value in at least one of the constrained
+columns. This behavior can be changed by adding the clause
+`NULLS NOT DISTINCT`:
+
+```sql
+CREATE TABLE products (
+    product_no integer UNIQUE NULLS NOT DISTINCT,
+    name text,
+    price numeric
+);
+```
+
