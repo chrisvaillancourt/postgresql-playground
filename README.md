@@ -1201,3 +1201,252 @@ The result of the `FROM` clause is an intermediate virtual table that can then
 be subject to transformations by the `WHERE`, `GROUP BY`, and `HAVING` clauses
 and is finally the result of the overall table expression.
 
+### Joined tables
+
+The general syntax:
+
+```sql
+T1 join_type T2 [ join_condition ]
+```
+
+Joins can be chained or nested. Parenthese can be used around the `JOIN` clause
+to control the join order. WIthout parentheses, `JOIN` clauses nest
+left-to-right.
+
+#### `CROSS JOIN`
+
+For every possible combination of rows from `T1` and `T2` the joined table will
+contain a row consisting of all columns in `T1` followed by all columns in `T2`.
+If the tables have N and M rows respectively, the joined table will have N \* M
+rows.
+
+syntax:
+
+```sql
+T1 CROSS JOIN T2
+```
+
+#### Qualified joins
+
+a "qualified join" is essentially any join that uses an explicit join condition
+to specify how rows from two tables should be matched. It's a best practice to
+use a qualified join because they add clarity and control to how data is
+combined.
+
+Syntax:
+
+```sql
+T1 { [INNER] | { LEFT | RIGHT | FULL } [OUTER] } JOIN T2 ON boolean_expression
+T1 { [INNER] | { LEFT | RIGHT | FULL } [OUTER] } JOIN T2 USING ( join column list )
+T1 NATURAL { [INNER] | { LEFT | RIGHT | FULL } [OUTER] } JOIN T2
+```
+
+The words `INNER` and `OUTER` are optional in all forms.
+`INNER` is the default. `LEFT`, `RIGHT`, and `FULL` imply an outer join.
+
+`INNER` and `OUTER` joins differ in how they handle rows where there's no match
+between the joined tables.
+
+An `OUTER JOIN` returns all rows from one table (the "preserved" table) and the
+matching rows from the other table. If there's no match in the other table, it
+returns `NULL` values for the columns of the non-matching table. There are three
+types of outer joins: `LEFT`, `RIGHT`, and `FULL`.
+
+The join condition is specified in the `ON` or `USING` clause, or implicitly by
+the word `NATURAL`. The join condition determines which rows from the two
+source tables are considered to “match”.
+
+##### `INNER JOIN`
+
+For each row R1 of T1, the joined table has a row for each row in T2 that
+satisfies the join condition with R1. AKA Returns only rows where the join
+condition is met in both tables.
+
+```sql
+CREATE TABLE orders (
+    order_id integer UNIQUE,
+    customer_id integer,
+    product_name text
+);
+CREATE TABLE customers (
+    customer_id integer UNIQUE,
+    customer_name text
+);
+INSERT INTO customers (customer_id, customer_name) VALUES
+    (1, 'Topher'),
+    (2, 'Alex'),
+    (3, 'Susan'),
+    (4, 'Patricia'),
+    (5, 'Will'), -- no orders
+INSERT INTO orders (order_id, customer_id, product_name) VALUES
+    (1, 1, 'Oranges'),
+    (2, 1, 'Bananas'),
+    (3, 2, 'Cabbage'),
+    (4, 3, 'Cake'),
+    (5, 3, 'Milk'),
+    (6, 3, 'Flour'),
+    (7, 4, 'Steak'),
+    (8, 4, 'Charcoal'),
+    (9, 4, 'Hamburger'),
+    (10, NULL, 'ice cream'); -- no customer id
+```
+
+```sql
+SELECT o.order_id, c.customer_name
+FROM orders o
+INNER JOIN customers c ON o.customer_id = c.customer_id;
+```
+
+↑ only return rows where an order has a corresponding customer (i.e., where the
+`customer_id` exists in both tables). Orders without a matching customer, or
+customers without any orders, will not be included.
+
+```
+ order_id | customer_name
+----------+---------------
+        1 | Topher
+        2 | Topher
+        3 | Alex
+        4 | Susan
+        5 | Susan
+        6 | Susan
+        7 | Patricia
+        8 | Patricia
+        9 | Patricia
+(9 rows)
+```
+
+##### `LEFT JOIN` aka `LEFT OUTER JOIN`
+
+A `LEFT JOIN` returns all rows from the left table, and the matching rows from
+the right table. If there's no match in the right table, `NULL` values are
+returned for the right table's columns.
+
+```sql
+SELECT c.customer_name, o.order_id
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id;
+```
+
+↑ return all customers, even those who haven't placed any orders. For customers
+without orders, the `o.order_id` column will be `NULL`:
+
+```
+customer_name | order_id
+---------------+----------
+ Topher        |        1
+ Topher        |        2
+ Alex          |        3
+ Susan         |        4
+ Susan         |        5
+ Susan         |        6
+ Patricia      |        7
+ Patricia      |        8
+ Patricia      |        9
+ Will          |
+(10 rows)
+```
+
+##### `RIGHT JOIN` aka `RIGHT OUTER JOIN`
+
+A `RIGHT JOIN` returns all rows from the right table, and the matching rows
+from the left table. If there's no match in the left table, `NULL` values are
+returned for the left table's columns
+
+```sql
+SELECT c.customer_name, o.order_id
+FROM customers c
+RIGHT JOIN orders o ON c.customer_id = o.customer_id;
+```
+
+↑ returns all orders, even those placed by customers not in the customers table
+(data integrity issue):
+
+```
+ customer_name | order_id
+---------------+----------
+ Topher        |        1
+ Topher        |        2
+ Alex          |        3
+ Susan         |        4
+ Susan         |        5
+ Susan         |        6
+ Patricia      |        7
+ Patricia      |        8
+ Patricia      |        9
+               |       10
+(10 rows)
+```
+
+##### `FULL OUTER JOIN`
+
+A `FULL OUTER JOIN` returns all rows from both the left and right tables.
+If there's no match in either table, `NULL` values are returned for the columns
+of the table without a match.
+
+```sql
+SELECT c.customer_name, o.order_id
+FROM customers c
+FULL OUTER JOIN orders o ON c.customer_id = o.customer_id;
+```
+
+↑ returns all customers and all orders. If a customer has no orders, the order
+columns will be `NULL`. If an order has no associated customer, the customer
+columns will be `NULL`:
+
+```
+ customer_name | order_id
+---------------+----------
+ Topher        |        1
+ Topher        |        2
+ Alex          |        3
+ Susan         |        4
+ Susan         |        5
+ Susan         |        6
+ Patricia      |        7
+ Patricia      |        8
+ Patricia      |        9
+               |       10
+ Will          |
+(11 rows)
+```
+
+##### `ON` clause
+
+The `ON` clause is the most general and flexible kind of join condition.
+It takes a Boolean value expression of the same kind as is used in a `WHERE` clause.
+A pair of rows from T1 and T2 match if the `ON` expression evaluates to true.
+
+The `ON` clause allows you to join tables based on columns that have different
+names in the two tables. You can also use it for more complex join conditions
+involving comparisons other than equality (i.e., >, <, <=, >=, !=)
+
+The `USING` clause is a shorthand that allows you to take advantage of the
+specific situation where both sides of the join use the same name for the
+joining column(s). It takes a comma-separated list of the shared column names
+and forms a join condition that includes an equality comparison for each one.
+For example, joining T1 and T2 with `USING (a, b)` produces the join condition: `ON T1.a = T2.a AND T1.b = T2.b`.
+
+`JOIN USING` automatically removes duplicate columns. While `JOIN ON` produces
+all columns from T1 followed by all columns from T2. `JOIN USING` produces one
+output column for each of the listed column pairs (in the listed order),
+followed by any remaining columns from T1, followed by any remaining columns
+from T2.
+
+Both of the following queries produce the same result:
+
+```sql
+SELECT o.order_id, c.customer_name
+FROM orders o
+INNER JOIN customers c ON o.customer_id = c.customer_id;
+```
+
+```sql
+SELECT o.order_id, c.customer_name
+FROM orders o
+INNER JOIN customers c USING (customer_id);
+```
+
+In general, it's probably better to always use `ON` for consistency and
+clarity, even when the column names are the same. This can make queries easier
+to understand and maintain, especially as they become more complex.
