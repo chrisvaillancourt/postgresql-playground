@@ -1117,3 +1117,9 @@ ALTER TABLE products ALTER COLUMN price TYPE numeric(10,2);
 ALTER TABLE products RENAME COLUMN product_no TO product_number;
 ```
 
+### Renaming a table
+
+```sql
+ALTER TABLE products RENAME TO items;
+```
+
