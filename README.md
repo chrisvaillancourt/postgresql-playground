@@ -799,3 +799,26 @@ operand is null, they will not prevent null values in the constrained columns.
 To ensure that a column does not contain null values, you must use the not-null
 constraint.
 
+## not-null constraints
+
+A not-null constraint simply specifies that a column must not assume the null
+value:
+
+```sql
+CREATE TABLE products (
+    product_no integer NOT NULL,
+    name text NOT NULL,
+    price numeric
+);
+```
+
+A column can have multiple constraints, one listed after another:
+
+```sql
+CREATE TABLE products (
+    product_no integer NOT NULL,
+    name text NOT NULL,
+    price numeric NOT NULL CHECK (price > 0)
+);
+```
+
