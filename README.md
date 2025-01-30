@@ -214,3 +214,18 @@ UPDATE weather
     WHERE date > '1994-11-28';
 ```
 
+## Deletions
+
+Remove rows from a table with `DELETE` command. i.e. to delete weather records
+for the city of Hayward:
+
+```sql
+DELETE FROM weather WHERE city = 'Hayward';
+```
+
+ALl rows will be deleted if you don't provide a `WHERE` clause:
+
+```sql
+DELETE FROM tablename;
+```
+
