@@ -1055,3 +1055,15 @@ With constraints:
 ALTER TABLE products ADD COLUMN description text CHECK (description <> '');
 ```
 
+### Removing a column
+
+```sql
+ALTER TABLE products DROP COLUMN description;
+```
+
+If the column is referenced by a foreign key constraint of another table, postgresql will silently drop the constraint. To drop everything that depends on the column:
+
+```sql
+ALTER TABLE products DROP COLUMN description CASCADE;
+```
+
