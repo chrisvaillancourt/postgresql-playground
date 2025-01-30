@@ -1111,3 +1111,9 @@ ALTER TABLE products ALTER COLUMN price TYPE numeric(10,2);
 
 ↑ only works if the conversion can be done with an implicit cast. Otherwise neeed to use a `USING` clause.
 
+### Rename a column
+
+```sql
+ALTER TABLE products RENAME COLUMN product_no TO product_number;
+```
+
