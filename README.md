@@ -713,3 +713,89 @@ yields:
 A generated column is updated whenever the row changes and cannot be overridden.
 There are several restrictions on generated columns.
 
+## Constraints
+
+Allow us to set allowed limits to a column or constrain a column's data with
+respect to other columns.
+
+A check constraint is the most generic constraint type. It allows you to
+specify that the value in a certain column must satisfy a Boolean (truth-value)
+expression. For instance, to require positive product prices, you could use:
+
+```sql
+CREATE TABLE products (
+    product_no integer,
+    name text,
+    price numeric CHECK (price > 0)
+);
+```
+
+You can also give the constraint a separate name. This clarifies error messages
+and allows you to refer to the constraint when you need to change it. To
+specify a named constraint, use the key word `CONSTRAINT` followed by an
+identifier followed by the constraint definition.
+
+```sql
+CREATE TABLE products (
+    product_no integer,
+    name text,
+    price numeric CONSTRAINT positive_price CHECK (price > 0)
+);
+```
+
+A check constraint can also refer to several columns. Say you store a regular
+price and a discounted price, and you want to ensure that the discounted price
+is lower than the regular price:
+
+```sql
+CREATE TABLE products (
+    product_no integer,
+    name text,
+    price numeric CHECK (price > 0),
+    discounted_price numeric CHECK (discounted_price > 0),
+    CHECK (price > discounted_price)
+);
+```
+
+↑ The third constraint is a table constraint because it is written separately
+from any one column definition. There are multiple ways to define a constraint. these are the same:
+
+```sql
+CREATE TABLE products (
+    product_no integer,
+    name text,
+    price numeric CHECK (price > 0),
+    discounted_price numeric,
+    CHECK (discounted_price > 0 AND price > discounted_price)
+);
+CREATE TABLE products (
+    product_no integer,
+    name text,
+    price numeric,
+    CHECK (price > 0),
+    discounted_price numeric,
+    CHECK (discounted_price > 0),
+    CHECK (price > discounted_price)
+);
+```
+
+Example assigning a name to a table constraint:
+
+```sql
+CREATE TABLE products (
+    product_no integer,
+    name text,
+    price numeric,
+    CHECK (price > 0),
+    discounted_price numeric,
+    CHECK (discounted_price > 0),
+    CONSTRAINT valid_discount CHECK (price > discounted_price)
+);
+```
+
+A check constraint is satisfied if the check expression evaluates to true or
+the null value. Since most expressions will evaluate to the null value if any
+operand is null, they will not prevent null values in the constrained columns.
+To ensure that a column does not contain null values, you must use the not-null
+constraint.
+
