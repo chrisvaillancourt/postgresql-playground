@@ -203,3 +203,14 @@ SELECT city, count(*) FILTER (WHERE temp_lo < 45), max(temp_lo)
     GROUP BY city;
 ```
 
+## Updates
+
+use the `UPDATE` command to modify existing rows.
+i.e. to lower temperature readings after November 28 by 2 degrees:
+
+```sql
+UPDATE weather
+    SET temp_hi = temp_hi - 2,  temp_lo = temp_lo - 2
+    WHERE date > '1994-11-28';
+```
+
