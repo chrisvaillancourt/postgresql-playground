@@ -1067,3 +1067,29 @@ If the column is referenced by a foreign key constraint of another table, postgr
 ALTER TABLE products DROP COLUMN description CASCADE;
 ```
 
+### Adding a constraint
+
+```sql
+ALTER TABLE products ADD CHECK (name <> '');
+ALTER TABLE products ADD CONSTRAINT some_name UNIQUE (product_no);
+ALTER TABLE products ADD FOREIGN KEY (product_group_id)
+  REFERENCES product_groups;
+```
+
+To add a not-null constraint, which cannot be written as a table constraint:
+
+```sql
+ALTER TABLE products ALTER COLUMN product_no SET NOT NULL;
+```
+
+To remove a constraint, you need to know it's name. If you provided one
+initially:
+
+```sql
+ALTER TABLE products DROP CONSTRAINT some_name;
+```
+
+You need to add CASCADE if you want to drop a constraint that something else
+depends on. An example is that a foreign key constraint depends on a unique or
+primary key constraint on the referenced column(s).
+
