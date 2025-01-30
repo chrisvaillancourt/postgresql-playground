@@ -1149,3 +1149,19 @@ across the whole table.
 
 [See more here](https://www.postgresql.org/docs/17/ddl-partitioning.html)
 
+## Returning data from modified rows
+
+The `INSERT`, `UPDATE`, `DELETE`, and `MERGE` commands all have an optional `RETURNING` clause to return data when it's changed.
+
+Using the `RETURNING` clause avoids performing an extra database query to
+collect the data, and is especially valuable when it would otherwise be
+difficult to identify the modified rows reliably.
+
+The allowed contents of a `RETURNING` clause are the same as a `SELECT` command.
+A common shorthand is `RETURNING *`, which selects all columns of the target table in order.
+
+In an `INSERT`, the data available to `RETURNING` is the row as it was
+inserted. This is not so useful in trivial inserts, since it would just repeat
+the data provided by the client. But it can be very handy when relying on
+computed default values.
+
