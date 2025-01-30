@@ -1132,3 +1132,20 @@ object. To allow other roles to use it, privileges must be granted.
 
 [See more here](https://www.postgresql.org/docs/17/ddl-priv.html).
 
+## Table partitioning
+
+Partitioning refers to splitting what is logically one large table into smaller physical pieces. Partitioning can provide several benefits:
+
+Query performance can be improved dramatically in certain situations,
+particularly when most of the heavily accessed rows of the table are in a
+single partition or a small number of partitions. Partitioning effectively
+substitutes for the upper tree levels of indexes, making it more likely that
+the heavily-used parts of the indexes fit in memory.
+
+When queries or updates access a large percentage of a single partition,
+performance can be improved by using a sequential scan of that partition
+instead of using an index, which would require random-access reads scattered
+across the whole table.
+
+[See more here](https://www.postgresql.org/docs/17/ddl-partitioning.html)
+
