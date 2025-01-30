@@ -1172,3 +1172,32 @@ Syntax of a `SELECT` command:
 ```sql
 [WITH with_queries] SELECT select_list FROM table_expression [sort_specification]
 ```
+
+## Table expressions
+
+### `FROM` clause
+
+A table expression computes a table. The table expression contains a `FROM`
+clause that is optionally followed by `WHERE`, `GROUP BY`, and `HAVING` clauses.
+
+They're used to produce a virtual table that can be modified (transformed) and/
+or combined, based on other tables.
+
+The optional `WHERE`, `GROUP BY`, and `HAVING` clauses in the table expression
+specify a pipeline of successive transformations performed on the table derived
+in the FROM clause.
+
+One or more tables (or table reference) can be used by passing a comma
+separated list:
+
+```sql
+FROM table_reference [, table_reference [, ...]]
+```
+
+Valid table references includes table names, a table derived from a subquery, a
+`JOIN` construct, or any combination of these.
+
+The result of the `FROM` clause is an intermediate virtual table that can then
+be subject to transformations by the `WHERE`, `GROUP BY`, and `HAVING` clauses
+and is finally the result of the overall table expression.
+
