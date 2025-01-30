@@ -1498,4 +1498,121 @@ They may be assigned a table alias name, and optionally column alias names:
 FROM (SELECT * FROM table1) AS alias_name
 ```
 
-Aliasing a subquery is used when the subquery uses a grouping or aggregation
+Aliasing a subquery is used when the subquery uses a grouping or aggregation.
+
+### Subqueries
+
+A regular subquery is a query nested inside another query (the outer query).
+The subquery is executed once and its result is used by the outer query.
+The subquery cannot refer to columns from the outer query's tables directly.
+The subquery runs first, and its result set is treated as a value or a table by
+the outer query
+
+Types of subqueries:
+
+- Scalar Subqueries: Return a single value. Used in `WHERE` clauses, `SELECT` lists, etc.
+- Row Subqueries: Return a single row (multiple columns). Used in `WHERE` clauses.
+- Table Subqueries: Return multiple rows and columns. Used in `FROM` clauses (like a derived table), or in `WHERE` clauses with `IN`, `EXISTS`, etc.
+
+Subquery example:
+
+```sql
+SELECT customer_name
+FROM customers
+WHERE customer_id IN (SELECT customer_id FROM orders WHERE order_date >= '2023-10-26');
+```
+
+↑ the subquery `(SELECT customer_id FROM orders WHERE order_date >= '2023-10-26')` is executed once, returning a list of customer IDs.
+The outer query then uses this list to filter the customers table.
+
+### `LATERAL` subqueries
+
+A lateral subquery is a subquery that can refer to columns from the outer
+query's tables. This is the crucial difference. It's as if the subquery is
+executed for each row of the outer query.
+
+The lateral subquery is evaluated for every row processed by the outer query.
+This allows you to perform row-by-row calculations or lookups based on the
+current row's values.
+
+Use cases:
+
+- Calculating running totals.
+- Retrieving the "top N" results for each group.
+- Performing correlated lookups based on the current row's data.
+
+Lateral subquery example:
+
+```sql
+SELECT c.customer_name, o.order_total, running_total.running_sum
+FROM customers c
+CROSS JOIN LATERAL (
+    SELECT SUM(order_total) AS running_sum
+    FROM orders o2
+    WHERE o2.customer_id = c.customer_id AND o2.order_date <= '2023-10-27'
+) AS running_total
+INNER JOIN orders o ON c.customer_id = o.customer_id;
+```
+
+In the above ↑
+
+- The outer query iterates through each customer in the `customers` table (`c`).
+- For each customer, the `LATERAL` subquery is executed. Critically, the subquery can access `c.customer_id` (the customer being processed by the outer query).
+- The subquery calculates the running total of orders for that specific customer.
+- The result of the subquery (`running_sum`) is then available to the outer query as if it were a column.
+
+It is often helpful to `LEFT JOIN` to a `LATERAL` subquery, so that
+source rows will appear in the result even if the `LATERAL` subquery produces
+no rows for them. For example if we have a table of manufacurers and a table of products made by manufactureers, we can find which manufactureers don't produce products:
+
+```sql
+-- Create the manufacturers table
+CREATE TABLE manufacturers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+-- Create the products table
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    manufacturer_id INTEGER REFERENCES manufacturers(id),
+    name VARCHAR(255) NOT NULL
+);
+
+-- Create the function get_product_names
+CREATE OR REPLACE FUNCTION get_product_names(manufacturer_id INT)
+RETURNS TABLE (product_name VARCHAR(255)) AS $$
+BEGIN
+  RETURN QUERY SELECT name FROM products WHERE products.manufacturer_id = get_product_names.manufacturer_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Insert data into the manufacturers table
+INSERT INTO manufacturers (name) VALUES
+('Manufacturer A'),
+('Manufacturer B'),
+('Manufacturer C'),
+('Manufacturer D');
+
+-- Insert data into the products table
+INSERT INTO products (manufacturer_id, name) VALUES
+(1, 'Product A1'),
+(1, 'Product A2'),
+(2, 'Product B1'),
+(2, 'Product B2'),
+(3, 'Product C1');
+
+-- Example query execution
+SELECT m.name
+FROM manufacturers m LEFT JOIN LATERAL get_product_names(m.id) pname ON true
+WHERE pname IS NULL;
+```
+
+Yields:
+
+```
+      name
+----------------
+ Manufacturer D
+(1 row)
+```
