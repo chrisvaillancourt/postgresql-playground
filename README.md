@@ -1093,3 +1093,13 @@ You need to add CASCADE if you want to drop a constraint that something else
 depends on. An example is that a foreign key constraint depends on a unique or
 primary key constraint on the referenced column(s).
 
+### Changing a Column's Default Value
+
+Set a new default value:
+
+```sql
+ALTER TABLE products ALTER COLUMN price SET DEFAULT 7.77;
+```
+
+↑ Only changes the default for future INSERT commands.
+
