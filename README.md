@@ -494,3 +494,44 @@ SELECT sum(salary) OVER w, avg(salary) OVER w
   WINDOW w AS (PARTITION BY depname ORDER BY salary DESC);
 ```
 
+## Inheritance
+
+Tables can inherit from other tables like in classical object oriented
+languages. A table can inherit from multiple tables
+
+```sql
+CREATE TABLE cities (
+  name       text,
+  population real,
+  elevation  int     -- (in ft)
+);
+
+CREATE TABLE capitals (
+  state      char(2) UNIQUE NOT NULL
+) INHERITS (cities);
+```
+
+↑ `capitals` inherits all columns from `cities`.
+
+The following returns all cities (incliuding capitals):
+
+```sql
+SELECT name, elevation
+  FROM cities
+  WHERE elevation > 500;
+```
+
+The following finds all non-capital cities and are situated
+at an elevation over 500 feet:
+
+```sql
+SELECT name, elevation
+    FROM ONLY cities
+    WHERE elevation > 500;
+```
+
+The ONLY before cities indicates that the query should be run over only the
+cities table, and not tables below cities in the inheritance hierarchy.
+Inheritance hasn't been integrated with unique contraints or foreign keys.
+See [inheritance caveats](https://www.postgresql.org/docs/17/ddl-inherit.html).
+
