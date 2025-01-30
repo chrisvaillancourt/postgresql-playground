@@ -229,3 +229,28 @@ ALl rows will be deleted if you don't provide a `WHERE` clause:
 DELETE FROM tablename;
 ```
 
+## Views
+
+Allow you to save a query and allows us to refer to it like a table.
+i.e. to combine the weather records and city location:
+
+```sql
+CREATE VIEW myview AS
+    SELECT name, temp_lo, temp_hi, prcp, date, location
+        FROM weather, cities
+        WHERE city = name;
+```
+
+Then we can query it like any other table:
+
+```sql
+SELECT * FROM myview;
+```
+
+Views allow you to encapsulate the details of the structure of your tables,
+which might change as your application evolves, behind consistent interfaces.
+
+You can create views of other views.
+
+To delete a view: `DROP VIEW [IF EXISTS] view_name [CASCADE | RESTRICT];`
+
