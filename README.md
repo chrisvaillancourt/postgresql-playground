@@ -254,3 +254,25 @@ You can create views of other views.
 
 To delete a view: `DROP VIEW [IF EXISTS] view_name [CASCADE | RESTRICT];`
 
+## Foreign keys
+
+Allow you to apply a constraint on a table like requiring a record to exist in
+one table before being added to another table.
+i.e. to ensure you can't add weather records to the weather table that don't
+have a record in the citites table:
+
+```sql
+CREATE TABLE cities (
+        name     varchar(80) primary key,
+        location point
+);
+
+CREATE TABLE weather (
+        city      varchar(80) references cities(name),
+        temp_lo   int,
+        temp_hi   int,
+        prcp      real,
+        date      date
+);
+```
+
