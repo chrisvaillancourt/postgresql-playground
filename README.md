@@ -1123,3 +1123,12 @@ ALTER TABLE products RENAME COLUMN product_no TO product_number;
 ALTER TABLE products RENAME TO items;
 ```
 
+## Privileges
+
+When an object is created, it is assigned an owner. The owner is normally the
+role that executed the creation statement. For most kinds of objects, the
+initial state is that only the owner (or a superuser) can do anything with the
+object. To allow other roles to use it, privileges must be granted.
+
+[See more here](https://www.postgresql.org/docs/17/ddl-priv.html).
+
