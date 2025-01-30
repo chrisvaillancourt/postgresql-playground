@@ -557,3 +557,67 @@ treated as a keyword.
 
 Quoting an identifier also makes it case-sensitive, whereas unquoted names are always folded to lower case.
 
+## Default values
+
+Column's can have a default value so that one is assigned if not provided.
+
+```sql
+CREATE TABLE products (
+    product_no integer,
+    name text,
+    price numeric DEFAULT 9.99
+);
+```
+
+The default value can be an expression, which will be evaluated whenever the default value is inserted (not when the table is created). A common example is for a timestamp column to have a default of `CURRENT_TIMESTAMP`, so that it gets set to the time of row insertion.
+
+Another common example is generating a “serial number” for each row. In PostgreSQL this is typically done by something like:
+
+```sql
+CREATE TABLE products (
+    product_no integer DEFAULT nextval('products_product_no_seq'),
+    name text,
+    price numeric DEFAULT 9.99,
+);
+```
+
+The pattern of using a `nextval()` function supplies successive values from a
+sequence object so we can do:
+
+```sql
+CREATE TABLE products (
+    product_no SERIAL,
+    name text,
+    price numeric DEFAULT 9.99
+);
+```
+
+`INSERT INTO  products (name) VALUES ('apples');`
+
+```sql
+SELECT * FROM products;
+```
+
+yields:
+
+```
+product_no |  name  | price
+------------+--------+-------
+          1 | apples |  9.99
+```
+
+```sql
+INSERT INTO  products (name, price) VALUES ('oranges', 12.99);
+```
+
+yields:
+
+```
+ product_no |  name   | price
+------------+---------+-------
+          1 | apples  |  9.99
+          2 | oranges | 12.99
+```
+
+[More on serial](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-SERIAL).
+
