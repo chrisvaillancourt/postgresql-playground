@@ -92,3 +92,50 @@ SELECT DISTINCT city
     ORDER BY city;
 ```
 
+## Joining
+
+### Inner joins
+
+```sql
+SELECT city, temp_lo, temp_hi, prcp, date, location
+    FROM weather JOIN cities ON city = name;
+```
+
+↑ only works because there isn't overlapping column names in the table.
+If there's duplicate names, we need to qualify the column name with the table
+name:
+
+```sql
+SELECT weather.city, weather.temp_lo, weather.temp_hi,
+       weather.prcp, weather.date, cities.location
+    FROM weather JOIN cities ON weather.city = cities.name;
+```
+
+It's a best practice to always qualify table names.
+
+### Outer join
+
+To get the rows from the weather table that don't have a corresponding row in
+the cities table use an outer join. this is specifically a left outer join:
+
+```sql
+SELECT *
+    FROM weather LEFT OUTER JOIN cities ON weather.city = cities.name;
+```
+
+It's called a left outer join because the table mentioned on the left of the join operator will have each of its rows in the output at least once, whereas the table on the right will only have those rows output that match some row of the left table
+
+### Self join
+
+WHen you join a table against itself. For example, we want to find all the
+weather records that are in the temperature range of other weather records.
+We need to compare the temp_lo and temp_hi columns of each weather row to the
+temp_lo and temp_hi columns of all other weather rows:
+
+```sql
+SELECT w1.city, w1.temp_lo AS low, w1.temp_hi AS high,
+       w2.city, w2.temp_lo AS low, w2.temp_hi AS high
+    FROM weather w1 JOIN weather w2
+        ON w1.temp_lo < w2.temp_lo AND w1.temp_hi > w2.temp_hi;
+```
+
