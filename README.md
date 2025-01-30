@@ -1450,3 +1450,52 @@ INNER JOIN customers c USING (customer_id);
 In general, it's probably better to always use `ON` for consistency and
 clarity, even when the column names are the same. This can make queries easier
 to understand and maintain, especially as they become more complex.
+
+### Table and column aliases
+
+A table alias is a temporary name given to a table when querying.
+The name can be referred to in other parts of the query.
+
+table alias syntax:
+
+```sql
+FROM table_reference AS alias
+```
+
+Or:
+
+```sql
+FROM table_reference alias
+```
+
+It's generally used to make an abbreviated table name inplace of a long table
+name:
+
+```sql
+SELECT * FROM some_very_long_table_name s JOIN another_fairly_long_name a ON s.id = a.num;
+```
+
+You can't refer to the original table name after using an alias.
+There's required when doing a self join:
+
+```sql
+SELECT * FROM people AS mother JOIN people AS child ON mother.id = child.mother_id;
+```
+
+Use parentheses to resolve ambiguities.
+
+```sql
+-- the alias, b, is assigned to he second instance of my_table:
+SELECT * FROM my_table AS a CROSS JOIN my_table AS b ...
+-- the alias, b, is assigned to the result of the join
+SELECT * FROM (my_table AS a CROSS JOIN my_table) AS b ...
+```
+
+Subqueries specifying a derived table must be enclosed in parentheses.
+They may be assigned a table alias name, and optionally column alias names:
+
+```sql
+FROM (SELECT * FROM table1) AS alias_name
+```
+
+Aliasing a subquery is used when the subquery uses a grouping or aggregation
