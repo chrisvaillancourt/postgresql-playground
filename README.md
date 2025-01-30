@@ -56,3 +56,39 @@ INSERT INTO products (product_no, name, price) VALUES
 
 [See here for info about bulk loading](https://www.postgresql.org/docs/17/populate.html).
 
+## Querying
+
+Basic:
+
+```sql
+SELECT city, temp_lo, temp_hi, prcp, date FROM weather;
+```
+
+With an expression to dynamically calculate a column:
+
+```sql
+SELECT city, (temp_hi+temp_lo)/2 AS temp_avg, date FROM weather;
+```
+
+Filtering with `WHERE`:
+
+```sql
+SELECT * FROM weather
+    WHERE city = 'San Francisco' AND prcp > 0.0;
+```
+
+Order with `ORDER BY`:
+
+```sql
+SELECT * FROM weather
+    ORDER BY city, temp_lo;
+```
+
+Remove duplicate rows:
+
+```sql
+SELECT DISTINCT city
+    FROM weather
+    ORDER BY city;
+```
+
