@@ -1616,3 +1616,24 @@ Yields:
  Manufacturer D
 (1 row)
 ```
+
+### `WHERE` Clause
+
+The search condition is any [value expression](https://www.postgresql.org/docs/17/sql-expressions.html) that returns a boolean.
+
+The join codition of an inner join can be written in the `WHERE` clause or the
+`JOIN` clause. For example:
+
+```sql
+--these are equivalent
+FROM a, b WHERE a.id = b.id AND b.val > 5;
+FROM a INNER JOIN b ON (a.id = b.id) WHERE b.val > 5; -- newer, explicit syntax
+```
+
+Outer joins (`LEFT`, `RIGHT`, `FULL`) must put the join condition in the ON
+clause of the `JOIN` expression. You cannot put it in the `WHERE` clause:
+
+```sql
+FROM a LEFT JOIN b ON a.id = b.id WHERE b.val > 5;  -- Correct
+FROM a LEFT JOIN b WHERE a.id = b.id AND b.val > 5; -- Incorrect for outer join
+```
